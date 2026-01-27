@@ -5,7 +5,7 @@ export class Staff {
   email: string;
   username: string;
   password: string;
-  active: boolean;
+  active?: boolean;
   address_id: string;
   store_id: string;
 
@@ -15,9 +15,9 @@ export class Staff {
     email: string,
     username: string,
     password: string,
-    active: boolean,
     address_id: string,
     store_id: string,
+    active?: boolean,
   ) {
     this.first_name = first_name;
     this.last_name = last_name;
