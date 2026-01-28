@@ -226,7 +226,7 @@ Below, you can see the crow's foot database diagram of this application:
 
 <table align="center">
   <td align="center">
-    <img src="/ERD.dvd.png" alt="ERD" width="600" />
+    <img src="/ERD_dvd.png" alt="ERD" width="600" />
   </td>
 </table>
 
