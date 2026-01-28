@@ -30,23 +30,23 @@ export class PaymentService {
     customerId: string,
     staffId: string
   ): Promise<Payment> {
-    // TODO: Process rental payment
-    // 1. Find the rental (rentalRepo.findById)
+    // Process rental payment
+    // 1. Find the rental 
     const rental = await this.rentalRepo.findById(rentalId);
     if (!rental) {
       throw new Error("Rental not found");
     }
-    // 2. Find the inventory by rental.inventory_id (inventoryRepo.findById)
+    // 2. Find the inventory 
     const inventory = await this.inventoryRepo.findById(rental.inventory_id);
     if (!inventory) {
       throw new Error("Inventory not found");
     }
-    // 3. Find the film by inventory.film_id (filmRepo.findById)
+    // 3. Find the film 
     const film = await this.filmRepo.findById(inventory.film_id);
     if (!film) {
       throw new Error("Film not found");
     }
-    // 4. Calculate the amount: rental_duration * rental_rate of the film
+    // 4. Determine the amount to be paid 
     let amount = film.rental_rate || 0;
 
     // 5. Check if there is a late fee, if so, add it to the amount
@@ -64,16 +64,13 @@ export class PaymentService {
       customerId,
       staffId
     );
-    // 7. Save the payment (paymentRepo.create)
+    // 7. Save the payment 
     const createdPayment = await this.paymentRepo.create(payment);
     // 8. Return the created payment
     return createdPayment;
   }
 
   async getPaymentsByCustomer(customerId: string): Promise<Payment[]> {
-    // TODO: Fetch all payments from a customer
-    // 1. Use paymentRepo.findByCustomer to fetch all payments
-    // 2. Return the list of payments
     const payments = await this.paymentRepo.findByCustomer(customerId);
     if (payments.length === 0) {
       throw new Error("No payments found for this customer");
@@ -83,41 +80,33 @@ export class PaymentService {
   }
 
   async getTotalPaidByCustomer(customerId: string): Promise<number> {
-    // TODO: Calculate total paid by a customer
-    // 1. Use paymentRepo.getTotalByCustomer to sum all payments
     const total = await this.paymentRepo.getTotalByCustomer(customerId);
     if (total === 0) {
       throw new Error("This customer has not made any payments");
     }
 
-    // 2. Return the total amount
     return total;
   }
 
   async getPaymentsByDateRange(startDate: Date, endDate: Date): Promise<Payment[]> {
-    // TODO: Fetch payments in a period
-    // 1. Use paymentRepo.findByDateRange to fetch payments between dates
     const payments = await this.paymentRepo.findByDateRange(startDate, endDate);
     if (payments.length === 0) {
       throw new Error("No payments found in the specified date range");
     }
-    // 2. Return the list of payments
     return payments;
   }
 
   async getRevenueByDateRange(startDate: Date, endDate: Date): Promise<number> {
-    // TODO: Calculate total revenue in a period
-    // 1. Fetch payments in the period (paymentRepo.findByDateRange)
     const payments = await this.paymentRepo.findByDateRange(startDate, endDate);
     if (payments.length === 0) {
       throw new Error("No payments found in the specified date range");
     }
-    // 2. Sum the amount of all payments
+
     let totalRevenue = 0;
     payments.forEach(payment => {
       totalRevenue += payment.amount;
     })
-    // 3. Return the total amount
+    
     return totalRevenue;
   }
 
@@ -127,7 +116,7 @@ export class PaymentService {
     customerName: string;
     filmTitle: string;
   }> {
-    // TODO: Generate detailed payment receipt
+    // Generate detailed payment receipt
     // 1. Find the payment (paymentRepo.findById)
     const payment = await this.paymentRepo.findById(paymentId);
     if (!payment) {

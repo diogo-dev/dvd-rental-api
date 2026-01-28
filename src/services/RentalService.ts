@@ -90,8 +90,25 @@ export class RentalService {
     return rental;
   }
 
+  async deleteRental(rentalId: string): Promise<boolean> {
+    const rental = await this.rentalRepo.findById(rentalId);
+    if (!rental) {
+      throw new Error("Rental deletion failed: Rental does not exist");
+    }
+
+    return this.rentalRepo.delete(rentalId);
+  }
+
+  async getAllRentals(): Promise<Rental[]> {
+    const rentals = await this.rentalRepo.findAll();
+    if (rentals.length === 0) {
+      throw new Error("No rentals found");
+    }
+
+    return rentals;
+  }
+
   async getRentalsByCustomer(customerId: string): Promise<Rental[]> {
-    // TODO: Fetch all customer rentals
     const rentals = await this.rentalRepo.findByCustomer(customerId);
     if (rentals.length === 0) {
       throw new Error("No rentals found for the specified customer");
@@ -101,7 +118,6 @@ export class RentalService {
   }
 
   async getActiveRentals(): Promise<Rental[]> {
-    // TODO: Fetch all active rentals
     const activeRentals = await this.rentalRepo.findActive();
     if (activeRentals.length === 0) {
       throw new Error("No active rentals found");
@@ -111,7 +127,6 @@ export class RentalService {
   }
 
   async getOverdueRentals(): Promise<Rental[]> {
-    // TODO: Fetch all overdue rentals
     const overdueRentals = await this.rentalRepo.findOverdue();
     if (overdueRentals.length === 0) {
       throw new Error("No overdue rentals found");
@@ -121,27 +136,23 @@ export class RentalService {
   }
 
   async extendRental(rentalId: string, extraDays: number): Promise<Rental> {
-    // TODO: Extend return deadline
     const rental = await this.rentalRepo.findById(rentalId);
     if (!rental) {
       throw new Error("Rental does not exist");
     }
-    // 3. Add extraDays to return_date
+    // Add extraDays to return_date
     rental.return_date.setDate(rental.return_date.getDate() + extraDays);
-    // 4. Update the rental (rentalRepo.update)
+    // Update the rental (rentalRepo.update)
     await this.rentalRepo.update(rental);
-    // 5. Return the updated rental
     return rental;
   }
 
   async calculateLateFee(rentalId: string): Promise<number> {
-    // TODO: Calculate late fee
-    // 1. Find the rental (rentalRepo.findById)
     const rental = await this.rentalRepo.findById(rentalId);
     if (!rental) {
       throw new Error("Rental does not exist");
     }
-    // 2. Find the associated film via inventory_id to get rental_rate
+    // Find the associated film via inventory_id to get rental_rate
     const inventory = await this.inventoryRepo.findById(rental.inventory_id);
     if (!inventory) {
       throw new Error("Inventory does not exist");
@@ -151,12 +162,12 @@ export class RentalService {
     if (!film) {
       throw new Error("Film does not exist");
     }
-    // 3. Calculate overdue days (difference between NOW and return_date)
+    // Calculate overdue days (difference between NOW and return_date)
     const now = new Date();
     if (now > rental.return_date) {
       const diffTime = Math.abs(now.getTime() - rental.return_date.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      // Calculate late fee: overdue_days * rental_rate * late_fee_factor (e.g.: 1.5)
+      // Calculate late fee: rental_rate * late_fee_factor (e.g.: 1.5)
       const lateFee = diffDays * (film.rental_rate || 0) * 1.5;
       return lateFee;
     } else {
@@ -168,10 +179,9 @@ export class RentalService {
 
   async hasUnpaidOverdueRentals(customerId: string): Promise<boolean> {
     // Check if customer has overdue rentals without payment
-    // 1. Fetch customer rentals
     const rentals = await this.rentalRepo.findByCustomer(customerId);
     
-    // 2. Check if there are overdue rentals (return_date < NOW)
+    // Check if there are overdue rentals (return_date < NOW)
     const now = new Date();
     const overdueRentals = rentals.filter(rental => rental.return_date < now);
     
@@ -180,10 +190,10 @@ export class RentalService {
       return false;
     }
     
-    // 3. For each overdue rental, check if there is a corresponding payment
+    // For each overdue rental, check if there is a corresponding payment
     const payments = await this.paymentRepo.findByCustomer(customerId);
     
-    // 4. If there are overdue rentals without payment, return true
+    // If there are overdue rentals without payment, return true
     for (const rental of overdueRentals) {
       const hasPayment = payments.some(payment => payment.rental_id === rental.id);
       if (!hasPayment) {
@@ -191,7 +201,7 @@ export class RentalService {
       }
     }
     
-    // 5. All overdue rentals have payment
+    // All overdue rentals have payment
     return false;
   }
 }

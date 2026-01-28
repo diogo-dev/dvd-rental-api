@@ -41,7 +41,7 @@ export class CustomerService {
     addressId: string,
     storeId: string
   ): Promise<Customer> {
-    // TODO: Register new customer
+    // Register new customer
     const existingCustomer = await this.customerRepo.findByEmail(email);
     if (existingCustomer) {
       throw new Error("Email is already registered");
@@ -59,14 +59,13 @@ export class CustomerService {
       addressId,
       storeId
     );
-    // 5. Save the customer (customerRepo.create)
     const createdCustomer = await this.customerRepo.create(customer);
-    // 6. Return the created customer
+    
     return createdCustomer;
   }
 
   async getCustomerProfile(customerId: string): Promise<CustomerProfile> {
-    // TODO: Fetch complete customer profile
+    // Fetch complete customer profile
     // 1. Find the customer (customerRepo.findById)
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
@@ -89,79 +88,68 @@ export class CustomerService {
   }
 
   async getRentalHistory(customerId: string): Promise<Rental[]> {
-    // TODO: Fetch rental history
-    // 1. Check if customer exists (customerRepo.findById)
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
       throw new Error("Customer not found");
     }
-    // 2. Find all rentals (rentalRepo.findByCustomer)
+  
     const rentals = await this.rentalRepo.findByCustomer(customerId);
     if (rentals.length === 0) {
       throw new Error("No rentals found for this customer");
     }
-    // 3. Return the list of rentals
+   
     return rentals;
   }
 
   async getPaymentHistory(customerId: string): Promise<Payment[]> {
-    // TODO: Fetch payment history
-    // 1. Check if customer exists (customerRepo.findById)
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
       throw new Error("Customer not found");
     }
-    // 2. Find all payments (paymentRepo.findByCustomer)
+
     const payments = await this.paymentRepo.findByCustomer(customerId);
     if (payments.length === 0) {
       throw new Error("No payments found for this customer");
     }
-    // 3. Return the list of payments
+
     return payments;
   }
 
   async deactivateCustomer(customerId: string): Promise<Customer> {
-    // TODO: Deactivate customer
-    // 1. Find the customer (customerRepo.findById)
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
       throw new Error("Customer not found");
     }
-    // 2. Check if there are active rentals (rentalRepo.findByCustomer and filter active ones)
+    // Check if there are active rentals (rentalRepo.findByCustomer and filter active ones)
     const rentals = await this.rentalRepo.findByCustomer(customerId);
     const now = new Date();
     const activeRentals = rentals.filter(rental => rental.return_date > now);
-    // 3. If there are active rentals, throw error (customer has pending items)
+    // If there are active rentals, throw error (customer has pending items)
     if (activeRentals.length > 0) {
       throw new Error("Customer has active rentals and cannot be deactivated");
     }
     
-    // 4. Update customer.active = false
     customer.active = false;
-    // 5. Save (customerRepo.update)
     const updatedCustomer = await this.customerRepo.update(customer);
     if (!updatedCustomer) {
       throw new Error("Failed to deactivate customer");
     }
-    // 6. Return the updated customer
+    
     return updatedCustomer;
   }
 
   async activateCustomer(customerId: string): Promise<Customer> {
-    // TODO: Reactivate customer
-    // 1. Find the customer (customerRepo.findById)
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
       throw new Error("Customer not found");
     }
-    // 2. Update customer.active = true
+   
     customer.active = true;
-    // 3. Save (customerRepo.update)
     const updatedCustomer = await this.customerRepo.update(customer);
     if (!updatedCustomer) {
       throw new Error("Failed to activate customer");
     }
-    // 4. Return the updated customer
+   
     return updatedCustomer;
   }
 
