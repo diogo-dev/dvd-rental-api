@@ -1,6 +1,6 @@
 import { Client } from "pg";
 
-export async function transaction(fn: (client: Client) => Promise<void>) {
+export function transaction(fn: (client: Client) => Promise<void>) {
   return async function ({ context: client }: { context: Client }) {
     try {
       await client.query("BEGIN;");

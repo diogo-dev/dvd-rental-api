@@ -1,4 +1,4 @@
-import { transaction } from "@/config/umzug/transaction";
+import { transaction } from "../config/umzug/transaction";
 import { Client } from "pg";
 
 export const up = transaction(async (client: Client) => {
@@ -8,7 +8,7 @@ export const up = transaction(async (client: Client) => {
   `)
 
   await client.query(`
-
+    
     CREATE TABLE film (
       id uuid DEFAULT gen_random_uuid(),
       title varchar(255) NOT NULL,
@@ -146,7 +146,7 @@ export const up = transaction(async (client: Client) => {
       CONSTRAINT fk_staff FOREIGN KEY (staff_id) REFERENCES staff(id)
     );
 
-  `)
+    `)
 });
 
 export const down = transaction(async (client: Client) => {
