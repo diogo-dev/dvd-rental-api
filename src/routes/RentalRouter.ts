@@ -1,7 +1,7 @@
 import Router from "express";
-import pool from "../config/db/pool_pg.js";
-import { RentalService } from "@/services/RentalService.js";
-import { RentalController } from "@/controllers/RentalController.js";
+import pool from "@/config/db/pool_pg";
+import { RentalService } from "@/services/RentalService";
+import { RentalController } from "@/controllers/RentalController";
 
 export const RentalRouter = Router();
 const rentalService = new RentalService(pool);
