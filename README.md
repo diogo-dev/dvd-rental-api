@@ -207,18 +207,28 @@ npm test                # Run tests (not yet implemented)
 
 The system includes the following entities:
 
-- **Actor**: Movie actors
-- **Address**: Physical addresses
-- **Category**: Film categories
-- **City**: Cities
-- **Country**: Countries
-- **Customer**: Store customers
-- **Film**: DVD inventory
-- **Inventory**: Film stock
-- **Payment**: Payment transactions
-- **Rental**: Rental records
-- **Staff**: Store employees
-- **Store**: Store locations
+- actor – stores actor data including first name and last name.
+- film – stores film data such as title, release year, length, rating, etc.
+- film_actor – stores the relationships between films and actors.
+- category – stores film’s categories data.
+- film_category- stores the relationships between films and categories.
+- store – contains the store data including manager staff and address.
+- inventory – stores inventory data.
+- rental – stores rental data.
+- payment – stores customer’s payments.
+- staff – stores staff data.
+- customer – stores customer data.
+- address – stores address data for staff and customers
+- city – stores city names.
+- country – stores country names.
+
+Below, you can see the crow's foot database diagram of this application:
+
+<table align="center">
+  <td align="center">
+    <img src="/ERD.dvd.png" alt="ERD" width="600" />
+  </td>
+</table>
 
 ## 🛠️ Development
 
