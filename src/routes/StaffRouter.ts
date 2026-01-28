@@ -8,12 +8,12 @@ const staffService = new StaffService(pool);
 const staffController = new StaffController(staffService);
 
 // Register a new staff member
-StaffRouter.post("/staff/register", async (req, res) => {
+StaffRouter.post("/", async (req, res) => {
   await staffController.registerStaff(req, res);
 });
 
 // Authenticate staff member (login)
-StaffRouter.post("/auth/login", async (req, res) => {
+StaffRouter.post("/login", async (req, res) => {
   await staffController.authenticate(req, res);
 });
 

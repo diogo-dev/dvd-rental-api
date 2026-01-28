@@ -8,7 +8,7 @@ const customerService = new CustomerService(pool);
 const customerController = new CustomerController(customerService);
 
 // Register a new customer
-CustomerRouter.post("/customer/register", async (req, res) => {
+CustomerRouter.post("/", async (req, res) => {
   await customerController.registerCustomer(req, res);
 });
 
