@@ -5,6 +5,7 @@ import { CustomerRepo } from "@/repositories/CustomerRepo";
 import { FilmRepo } from "@/repositories/FilmRepo";
 import { PaymentRepo } from "@/repositories/PaymentRepo";
 import { Rental } from "@/entities/Rental";
+import { NotFoundError, BadRequestError } from "@/errors";
 
 export class RentalService {
   private rentalRepo: RentalRepo;
@@ -31,10 +32,10 @@ export class RentalService {
     // 1. Check if customer exists and is active (customerRepo.findById)
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
-      throw new Error("Customer does not exist");
+      throw new NotFoundError("Customer does not exist");
     }
     if (!customer.active) {
-      throw new Error("Customer is not active");
+      throw new BadRequestError("Customer is not active");
     }
 
     // 2. Check if there is available inventory of the film in the store (inventoryRepo.findAvailableByFilmAndStore)
@@ -42,13 +43,13 @@ export class RentalService {
 
     // 3. If there is no available inventory, throw error
     if (availableInventories.length === 0) {
-      throw new Error("No available inventory for the requested film in the specified store");
+      throw new NotFoundError("No available inventory for the requested film in the specified store");
     }
 
     // 4. Fetch film data to get rental_duration (filmRepo.findById)
     const film = await this.filmRepo.findById(filmId);
     if (!film) {
-      throw new Error("Film does not exist");
+      throw new NotFoundError("Film does not exist");
     }
 
     // 5. Calculate rental_date (now) and return_date (now + rental_duration days)
@@ -74,13 +75,13 @@ export class RentalService {
     // TODO: Implement film return
     const rental = await this.rentalRepo.findById(rentalId);
     if (!rental) {
-      throw new Error("Rental does not exist");
+      throw new NotFoundError("Rental does not exist");
     }
     
     // 3. Check if the film has not already been returned (compare return_date with now)
     const now = new Date();
     if (rental.return_date <= now) {
-      throw new Error("Film has already been returned");
+      throw new BadRequestError("Film has already been returned");
     }
 
     // 4. Update return_date to now (rentalRepo.update)
@@ -93,7 +94,7 @@ export class RentalService {
   async deleteRental(rentalId: string): Promise<boolean> {
     const rental = await this.rentalRepo.findById(rentalId);
     if (!rental) {
-      throw new Error("Rental deletion failed: Rental does not exist");
+      throw new NotFoundError("Rental deletion failed: Rental does not exist");
     }
 
     return this.rentalRepo.delete(rentalId);
@@ -102,7 +103,7 @@ export class RentalService {
   async getAllRentals(): Promise<Rental[]> {
     const rentals = await this.rentalRepo.findAll();
     if (rentals.length === 0) {
-      throw new Error("No rentals found");
+      throw new NotFoundError("No rentals found");
     }
 
     return rentals;
@@ -111,7 +112,7 @@ export class RentalService {
   async getRentalsByCustomer(customerId: string): Promise<Rental[]> {
     const rentals = await this.rentalRepo.findByCustomer(customerId);
     if (rentals.length === 0) {
-      throw new Error("No rentals found for the specified customer");
+      throw new NotFoundError("No rentals found for the specified customer");
     }
   
     return rentals;
@@ -120,7 +121,7 @@ export class RentalService {
   async getActiveRentals(): Promise<Rental[]> {
     const activeRentals = await this.rentalRepo.findActive();
     if (activeRentals.length === 0) {
-      throw new Error("No active rentals found");
+      throw new NotFoundError("No active rentals found");
     }
   
     return activeRentals;
@@ -129,7 +130,7 @@ export class RentalService {
   async getOverdueRentals(): Promise<Rental[]> {
     const overdueRentals = await this.rentalRepo.findOverdue();
     if (overdueRentals.length === 0) {
-      throw new Error("No overdue rentals found");
+      throw new NotFoundError("No overdue rentals found");
     }
     
     return overdueRentals;
@@ -138,7 +139,7 @@ export class RentalService {
   async extendRental(rentalId: string, extraDays: number): Promise<Rental> {
     const rental = await this.rentalRepo.findById(rentalId);
     if (!rental) {
-      throw new Error("Rental does not exist");
+      throw new NotFoundError("Rental does not exist");
     }
     // Add extraDays to return_date
     rental.return_date.setDate(rental.return_date.getDate() + extraDays);
@@ -150,17 +151,17 @@ export class RentalService {
   async calculateLateFee(rentalId: string): Promise<number> {
     const rental = await this.rentalRepo.findById(rentalId);
     if (!rental) {
-      throw new Error("Rental does not exist");
+      throw new NotFoundError("Rental does not exist");
     }
     // Find the associated film via inventory_id to get rental_rate
     const inventory = await this.inventoryRepo.findById(rental.inventory_id);
     if (!inventory) {
-      throw new Error("Inventory does not exist");
+      throw new NotFoundError("Inventory does not exist");
     }
 
     const film = await this.filmRepo.findById(inventory.film_id);
     if (!film) {
-      throw new Error("Film does not exist");
+      throw new NotFoundError("Film does not exist");
     }
     // Calculate overdue days (difference between NOW and return_date)
     const now = new Date();

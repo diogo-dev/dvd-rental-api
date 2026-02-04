@@ -2,6 +2,7 @@ import { Pool } from "pg";
 import { StaffRepo } from "@/repositories/StaffRepo";
 import { Staff } from "@/entities/Staff";
 import bcrypt from "bcrypt";
+import { NotFoundError, ConflictError, BadRequestError } from "@/errors";
 
 export class StaffService {
   private staffRepo: StaffRepo;
@@ -21,12 +22,12 @@ export class StaffService {
   ): Promise<Staff> {
     const existingStaff = await this.staffRepo.findByEmail(email);
     if (existingStaff) {
-      throw new Error("Email is already registered");
+      throw new ConflictError("Email is already registered");
     }
 
     const existingUsername = await this.staffRepo.findByUsername(username);
     if (existingUsername) {
-      throw new Error("Username is already taken");
+      throw new ConflictError("Username is already taken");
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -74,7 +75,7 @@ export class StaffService {
   async getStaffByStore(storeId: string): Promise<Staff[]> {
     const staffList = await this.staffRepo.findByStore(storeId);
     if (staffList.length === 0) {
-      throw new Error("No staff found for the specified store");
+      throw new NotFoundError("No staff found for the specified store");
     }
     return staffList;
   }
@@ -91,13 +92,13 @@ export class StaffService {
     // Update staff member information
     const staff = await this.staffRepo.findById(staffId);
     if (!staff) {
-      throw new Error("Staff not found");
+      throw new NotFoundError("Staff not found");
     }
     // If email was changed, check if it's not already in use
     if (data.email && data.email !== staff.email) {
       const existingStaff = await this.staffRepo.findByEmail(data.email);
       if (existingStaff && existingStaff.id !== staffId) {
-        throw new Error("Email is already in use by another staff member");
+        throw new ConflictError("Email is already in use by another staff member");
       }
     }
     // Update the provided fields
@@ -116,7 +117,7 @@ export class StaffService {
   
     const updatedStaff = await this.staffRepo.update(staff);
     if (!updatedStaff) {
-      throw new Error("Failed to update staff");
+      throw new BadRequestError("Failed to update staff");
     }
   
     return updatedStaff;
@@ -130,7 +131,7 @@ export class StaffService {
     // Change staff member password
     const staff = await this.staffRepo.findById(staffId);
     if (!staff) {
-      throw new Error("Staff not found");
+      throw new NotFoundError("Staff not found");
     }
     // Verify current password using bcrypt.compare
     const isPasswordValid = await bcrypt.compare(currentPassword, staff.password);
@@ -150,13 +151,13 @@ export class StaffService {
   async deactivateStaff(staffId: string): Promise<Staff> {
     const staff = await this.staffRepo.findById(staffId);
     if (!staff) {
-      throw new Error("Staff not found");
+      throw new NotFoundError("Staff not found");
     }
 
     staff.active = false;
     const updatedStaff = await this.staffRepo.update(staff);
     if (!updatedStaff) {
-      throw new Error("Failed to deactivate staff");
+      throw new BadRequestError("Failed to deactivate staff");
     }
 
     return updatedStaff;
@@ -166,13 +167,13 @@ export class StaffService {
     // Reactivate staff member
     const staff = await this.staffRepo.findById(staffId);
     if (!staff) {
-      throw new Error("Staff not found");
+      throw new NotFoundError("Staff not found");
     }
   
     staff.active = true;
     const updatedStaff = await this.staffRepo.update(staff);
     if (!updatedStaff) {
-      throw new Error("Failed to activate staff");
+      throw new BadRequestError("Failed to activate staff");
     }
    
     return updatedStaff;
@@ -181,7 +182,7 @@ export class StaffService {
   async getActiveStaff(): Promise<Staff[]> {
     const activeStaff = await this.staffRepo.findActive();
     if (activeStaff.length === 0) {
-      throw new Error("No active staff found");
+      throw new NotFoundError("No active staff found");
     }
     return activeStaff;
   }

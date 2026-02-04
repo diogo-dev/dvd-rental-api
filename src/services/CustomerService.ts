@@ -6,6 +6,7 @@ import { AddressRepo } from "@/repositories/AddressRepo";
 import { Customer } from "@/entities/Customer";
 import { Rental } from "@/entities/Rental";
 import { Payment } from "@/entities/Payment";
+import { NotFoundError, ConflictError, BadRequestError } from "@/errors";
 
 interface CustomerProfile {
   customer: Customer;
@@ -44,12 +45,12 @@ export class CustomerService {
     // Register new customer
     const existingCustomer = await this.customerRepo.findByEmail(email);
     if (existingCustomer) {
-      throw new Error("Email is already registered");
+      throw new ConflictError("Email is already registered");
     }
     
     const address = await this.addressRepo.findById(addressId);
     if (!address) {
-      throw new Error("Address not found");
+      throw new NotFoundError("Address not found");
     }
   
     const customer = new Customer(
@@ -90,12 +91,12 @@ export class CustomerService {
   async getRentalHistory(customerId: string): Promise<Rental[]> {
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
-      throw new Error("Customer not found");
+      throw new NotFoundError("Customer not found");
     }
   
     const rentals = await this.rentalRepo.findByCustomer(customerId);
     if (rentals.length === 0) {
-      throw new Error("No rentals found for this customer");
+      throw new NotFoundError("No rentals found for this customer");
     }
    
     return rentals;
@@ -104,12 +105,12 @@ export class CustomerService {
   async getPaymentHistory(customerId: string): Promise<Payment[]> {
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
-      throw new Error("Customer not found");
+      throw new NotFoundError("Customer not found");
     }
 
     const payments = await this.paymentRepo.findByCustomer(customerId);
     if (payments.length === 0) {
-      throw new Error("No payments found for this customer");
+      throw new NotFoundError("No payments found for this customer");
     }
 
     return payments;
@@ -118,7 +119,7 @@ export class CustomerService {
   async deactivateCustomer(customerId: string): Promise<Customer> {
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
-      throw new Error("Customer not found");
+      throw new NotFoundError("Customer not found");
     }
     // Check if there are active rentals (rentalRepo.findByCustomer and filter active ones)
     const rentals = await this.rentalRepo.findByCustomer(customerId);
@@ -126,13 +127,13 @@ export class CustomerService {
     const activeRentals = rentals.filter(rental => rental.return_date > now);
     // If there are active rentals, throw error (customer has pending items)
     if (activeRentals.length > 0) {
-      throw new Error("Customer has active rentals and cannot be deactivated");
+      throw new BadRequestError("Customer has active rentals and cannot be deactivated");
     }
     
     customer.active = false;
     const updatedCustomer = await this.customerRepo.update(customer);
     if (!updatedCustomer) {
-      throw new Error("Failed to deactivate customer");
+      throw new BadRequestError("Failed to deactivate customer");
     }
     
     return updatedCustomer;
@@ -141,13 +142,13 @@ export class CustomerService {
   async activateCustomer(customerId: string): Promise<Customer> {
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
-      throw new Error("Customer not found");
+      throw new NotFoundError("Customer not found");
     }
    
     customer.active = true;
     const updatedCustomer = await this.customerRepo.update(customer);
     if (!updatedCustomer) {
-      throw new Error("Failed to activate customer");
+      throw new BadRequestError("Failed to activate customer");
     }
    
     return updatedCustomer;
@@ -161,13 +162,13 @@ export class CustomerService {
     // 1. Find the customer (customerRepo.findById)
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
-      throw new Error("Customer not found");
+      throw new NotFoundError("Customer not found");
     }
     // 2. If email was changed, check if it's not already in use by another customer
     if (customerRecord.email && customerRecord.email !== customer.email) {
       const existingCustomer = await this.customerRepo.findByEmail(customerRecord.email);
       if (existingCustomer && existingCustomer.id !== customerId) {
-        throw new Error("Email is already in use by another customer");
+        throw new ConflictError("Email is already in use by another customer");
       }
     }
     // 3. Update the provided fields
@@ -186,7 +187,7 @@ export class CustomerService {
     // 4. Save (customerRepo.update)
     const updatedCustomer = await this.customerRepo.update(customer);
     if (!updatedCustomer) {
-      throw new Error("Failed to update customer");
+      throw new BadRequestError("Failed to update customer");
     }
     // 5. Return the updated customer
     return updatedCustomer;

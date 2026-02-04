@@ -7,6 +7,7 @@ import { InventoryRepo } from "@/repositories/InventoryRepo";
 import { Payment } from "@/entities/Payment";
 import { Rental } from "@/entities/Rental";
 import { RentalService } from "./RentalService";
+import { NotFoundError } from "@/errors";
 
 export class PaymentService {
   private paymentRepo: PaymentRepo;
@@ -34,17 +35,17 @@ export class PaymentService {
     // 1. Find the rental 
     const rental = await this.rentalRepo.findById(rentalId);
     if (!rental) {
-      throw new Error("Rental not found");
+      throw new NotFoundError("Rental not found");
     }
     // 2. Find the inventory 
     const inventory = await this.inventoryRepo.findById(rental.inventory_id);
     if (!inventory) {
-      throw new Error("Inventory not found");
+      throw new NotFoundError("Inventory not found");
     }
     // 3. Find the film 
     const film = await this.filmRepo.findById(inventory.film_id);
     if (!film) {
-      throw new Error("Film not found");
+      throw new NotFoundError("Film not found");
     }
     // 4. Determine the amount to be paid 
     let amount = film.rental_rate || 0;
@@ -73,7 +74,7 @@ export class PaymentService {
   async getPaymentsByCustomer(customerId: string): Promise<Payment[]> {
     const payments = await this.paymentRepo.findByCustomer(customerId);
     if (payments.length === 0) {
-      throw new Error("No payments found for this customer");
+      throw new NotFoundError("No payments found for this customer");
     }
 
     return payments;
@@ -82,7 +83,7 @@ export class PaymentService {
   async getTotalPaidByCustomer(customerId: string): Promise<number> {
     const total = await this.paymentRepo.getTotalByCustomer(customerId);
     if (total === 0) {
-      throw new Error("This customer has not made any payments");
+      throw new NotFoundError("This customer has not made any payments");
     }
 
     return total;
@@ -91,7 +92,7 @@ export class PaymentService {
   async getPaymentsByDateRange(startDate: Date, endDate: Date): Promise<Payment[]> {
     const payments = await this.paymentRepo.findByDateRange(startDate, endDate);
     if (payments.length === 0) {
-      throw new Error("No payments found in the specified date range");
+      throw new NotFoundError("No payments found in the specified date range");
     }
     return payments;
   }
@@ -99,7 +100,7 @@ export class PaymentService {
   async getRevenueByDateRange(startDate: Date, endDate: Date): Promise<number> {
     const payments = await this.paymentRepo.findByDateRange(startDate, endDate);
     if (payments.length === 0) {
-      throw new Error("No payments found in the specified date range");
+      throw new NotFoundError("No payments found in the specified date range");
     }
 
     let totalRevenue = 0;
@@ -120,26 +121,26 @@ export class PaymentService {
     // 1. Find the payment (paymentRepo.findById)
     const payment = await this.paymentRepo.findById(paymentId);
     if (!payment) {
-      throw new Error("Payment not found");
+      throw new NotFoundError("Payment not found");
     }
     // 2. Find the associated rental (rentalRepo.findById)
     const rental = await this.rentalRepo.findById(payment.rental_id);
     if (!rental) {
-      throw new Error("Associated rental not found");
+      throw new NotFoundError("Associated rental not found");
     }
     // 3. Find the customer (customerRepo.findById)
     const customer = await this.customerRepo.findById(payment.customer_id);
     if (!customer) {
-      throw new Error("Customer not found");
+      throw new NotFoundError("Customer not found");
     }
     // 4. Find inventory and then film to get title
     const inventory = await this.inventoryRepo.findById(rental.inventory_id);
     if (!inventory) {
-      throw new Error("Inventory not found");
+      throw new NotFoundError("Inventory not found");
     }
     const film = await this.filmRepo.findById(inventory.film_id);
     if (!film) {
-      throw new Error("Film not found");
+      throw new NotFoundError("Film not found");
     }
 
     // 5. Return object with all information for the receipt
