@@ -16,10 +16,10 @@ interface CustomerProfile {
 }
 
 interface CustomerRecord {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  addressId?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  addressId: string;
 }
 
 export class CustomerService {
@@ -70,7 +70,7 @@ export class CustomerService {
     // 1. Find the customer (customerRepo.findById)
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
-      throw new Error("Customer not found");
+      throw new NotFoundError("Customer not found");
     }
     // 2. Find all customer rentals (rentalRepo.findByCustomer)
     const rentals = await this.rentalRepo.findByCustomer(customerId);
@@ -156,10 +156,9 @@ export class CustomerService {
 
   async updateCustomerInfo(
     customerId: string,
-    customerRecord: CustomerRecord
+    customerRecord: Partial<CustomerRecord>
   ): Promise<Customer> {
-    // TODO: Update customer information
-    // 1. Find the customer (customerRepo.findById)
+    // 1. Find the customer
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
       throw new NotFoundError("Customer not found");

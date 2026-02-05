@@ -1,133 +1,106 @@
 import { NextFunction, Request, Response } from "express";
 import { CustomerService } from "@/services/CustomerService";
 import z from "zod";
+import { asyncHandler } from "@/middleware";
 
 export class CustomerController {
   constructor(private customerService: CustomerService) {}
 
-  async registerCustomer(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const schema = z.object({
-        firstName: z.string().min(1),
-        lastName: z.string().min(1),
-        email: z.string().email(),
-        addressId: z.string().uuid(),
-        storeId: z.string().uuid(),
-      });
+  registerCustomer = asyncHandler( async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    
+    const schema = z.object({
+      firstName: z.string().min(1),
+      lastName: z.string().min(1),
+      email: z.string().email(),
+      addressId: z.string().uuid(),
+      storeId: z.string().uuid(),
+    });
 
-      const params = schema.parse(req.body);
-      
-      const customer = await this.customerService.registerCustomer(
-        params.firstName,
-        params.lastName,
-        params.email,
-        params.addressId,
-        params.storeId
-      );
-      res.status(201).json(customer);
-    } catch (error) {
-      next(error);
-    }
-  }
+    const params = schema.parse(req.body);
+    
+    const customer = await this.customerService.registerCustomer(
+      params.firstName,
+      params.lastName,
+      params.email,
+      params.addressId,
+      params.storeId
+    );
+    res.status(201).json(customer);
+  });
 
-  async getCustomerProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const schema = z.object({
-        customerId: z.string().uuid(),
-      });
+  getCustomerProfile = asyncHandler( async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const schema = z.object({
+      customerId: z.string().uuid(),
+    });
 
-      const { customerId } = schema.parse(req.params);
+    const { customerId } = schema.parse(req.params);
 
-      const profile = await this.customerService.getCustomerProfile(customerId);
-      res.status(200).json(profile);
-    } catch (error) {
-      next(error);
-    }
-  }
+    const profile = await this.customerService.getCustomerProfile(customerId);
+    res.status(200).json(profile);
+  });
 
-  async getRentalHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const schema = z.object({
-        customerId: z.string().uuid(),
-      });
+  getRentalHistory = asyncHandler( async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const schema = z.object({
+      customerId: z.string().uuid(),
+    });
+    const { customerId } = schema.parse(req.params);
 
-      const { customerId } = schema.parse(req.params);
+    const rentals = await this.customerService.getRentalHistory(customerId);
+    res.status(200).json(rentals);
+  });
 
-      const rentals = await this.customerService.getRentalHistory(customerId);
-      res.status(200).json(rentals);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getPaymentHistory = asyncHandler( async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const schema = z.object({
+      customerId: z.string().uuid(),
+    });
+    const { customerId } = schema.parse(req.params);
 
-  async getPaymentHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const schema = z.object({
-        customerId: z.string().uuid(),
-      });
+    const payments = await this.customerService.getPaymentHistory(customerId);
+    res.status(200).json(payments);
+  });
 
-      const { customerId } = schema.parse(req.params);
+  deactivateCustomer = asyncHandler( async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const schema = z.object({
+    customerId: z.string().uuid(),
+    });
 
-      const payments = await this.customerService.getPaymentHistory(customerId);
-      res.status(200).json(payments);
-    } catch (error) {
-      next(error);
-    }
-  }
+    const { customerId } = schema.parse(req.params);
 
-  async deactivateCustomer(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const schema = z.object({
-        customerId: z.string().uuid(),
-      });
+    const customer = await this.customerService.deactivateCustomer(customerId);
+    res.status(200).json(customer);
+  });
 
-      const { customerId } = schema.parse(req.params);
+  activateCustomer = asyncHandler( async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const schema = z.object({
+    customerId: z.string().uuid(),
+    });
 
-      const customer = await this.customerService.deactivateCustomer(customerId);
-      res.status(200).json(customer);
-    } catch (error) {
-      next(error);
-    }
-  }
+    const { customerId } = schema.parse(req.params);
 
-  async activateCustomer(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const schema = z.object({
-        customerId: z.string().uuid(),
-      });
+    const customer = await this.customerService.activateCustomer(customerId);
+    res.status(200).json(customer);
+  });
 
-      const { customerId } = schema.parse(req.params);
+  updateCustomerInfo = asyncHandler( async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const paramsSchema = z.object({
+      customerId: z.string().uuid(),
+    });
 
-      const customer = await this.customerService.activateCustomer(customerId);
-      res.status(200).json(customer);
-    } catch (error) {
-      next(error);  
-    }
-  }
+    const bodySchema = z.object({
+      firstName: z.string().min(1).optional(),
+      lastName: z.string().min(1).optional(),
+      email: z.string().email().optional(),
+      addressId: z.string().uuid().optional(),
+    });
 
-  async updateCustomerInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const paramsSchema = z.object({
-        customerId: z.string().uuid(),
-      });
+    const { customerId } = paramsSchema.parse(req.params);
+    const customerData = bodySchema.parse(req.body);
 
-      const bodySchema = z.object({
-        firstName: z.string().min(1).optional(),
-        lastName: z.string().min(1).optional(),
-        email: z.string().email().optional(),
-        addressId: z.string().uuid().optional(),
-      });
-
-      const { customerId } = paramsSchema.parse(req.params);
-      const customerData = bodySchema.parse(req.body);
-
-      const customer = await this.customerService.updateCustomerInfo(
-        customerId,
-        customerData
-      );
-      res.status(200).json(customer);
-    } catch (error) {
-      next(error);
-    }
-  }
+    const customer = await this.customerService.updateCustomerInfo(
+      customerId,
+      customerData
+    );
+    res.status(200).json(customer);
+  });
+  
 }
