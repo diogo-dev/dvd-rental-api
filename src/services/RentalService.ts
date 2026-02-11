@@ -6,6 +6,7 @@ import { FilmRepo } from "@/repositories/FilmRepo";
 import { PaymentRepo } from "@/repositories/PaymentRepo";
 import { Rental } from "@/entities/Rental";
 import { NotFoundError, BadRequestError } from "@/errors";
+import { CreateRentalDTO } from "@/dto/CreateRentalDTO";
 
 export class RentalService {
   private rentalRepo: RentalRepo;
@@ -22,15 +23,10 @@ export class RentalService {
     this.paymentRepo = new PaymentRepo(pool);
   }
 
-  async rentFilm(
-    customerId: string,
-    filmId: string,
-    storeId: string,
-    staffId: string
-  ): Promise<Rental> {
+  async rentFilm(data: CreateRentalDTO): Promise<Rental> {
     // TODO: Implement film rental process
     // 1. Check if customer exists and is active (customerRepo.findById)
-    const customer = await this.customerRepo.findById(customerId);
+    const customer = await this.customerRepo.findById(data.customerId);
     if (!customer) {
       throw new NotFoundError("Customer does not exist");
     }
@@ -39,7 +35,7 @@ export class RentalService {
     }
 
     // 2. Check if there is available inventory of the film in the store (inventoryRepo.findAvailableByFilmAndStore)
-    const availableInventories = await this.inventoryRepo.findAvailableByFilmAndStore(filmId, storeId);
+    const availableInventories = await this.inventoryRepo.findAvailableByFilmAndStore(data.filmId, data.storeId);
 
     // 3. If there is no available inventory, throw error
     if (availableInventories.length === 0) {
@@ -47,7 +43,7 @@ export class RentalService {
     }
 
     // 4. Fetch film data to get rental_duration (filmRepo.findById)
-    const film = await this.filmRepo.findById(filmId);
+    const film = await this.filmRepo.findById(data.filmId);
     if (!film) {
       throw new NotFoundError("Film does not exist");
     }
@@ -63,8 +59,8 @@ export class RentalService {
       rentalDate,
       returnDate,
       availableInventories[0].id!,
-      customerId,
-      staffId
+      data.customerId,
+      data.staffId
     );
 
     // 7. Return the created rental

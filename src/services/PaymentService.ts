@@ -8,6 +8,7 @@ import { Payment } from "@/entities/Payment";
 import { Rental } from "@/entities/Rental";
 import { RentalService } from "./RentalService";
 import { NotFoundError } from "@/errors";
+import { ProcessPaymentDTO } from "@/dto/ProcessPaymentDTO";
 
 export class PaymentService {
   private paymentRepo: PaymentRepo;
@@ -26,14 +27,10 @@ export class PaymentService {
     this.rentalService = new RentalService(pool);
   }
 
-  async processRentalPayment(
-    rentalId: string,
-    customerId: string,
-    staffId: string
-  ): Promise<Payment> {
+  async processRentalPayment(data: ProcessPaymentDTO): Promise<Payment> {
     // Process rental payment
     // 1. Find the rental 
-    const rental = await this.rentalRepo.findById(rentalId);
+    const rental = await this.rentalRepo.findById(data.rentalId);
     if (!rental) {
       throw new NotFoundError("Rental not found");
     }
@@ -53,7 +50,7 @@ export class PaymentService {
     // 5. Check if there is a late fee, if so, add it to the amount
     const paymentDate = new Date();
     if (rental.return_date < paymentDate) {
-      const lateFee = await this.rentalService.calculateLateFee(rentalId);
+      const lateFee = await this.rentalService.calculateLateFee(data.rentalId);
       amount += lateFee;
     }
 
@@ -61,9 +58,9 @@ export class PaymentService {
     const payment = new Payment(
       amount,
       paymentDate,
-      rentalId,
-      customerId,
-      staffId
+      data.rentalId,
+      data.customerId,
+      data.staffId
     );
     // 7. Save the payment 
     const createdPayment = await this.paymentRepo.create(payment);

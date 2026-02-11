@@ -3,6 +3,7 @@ import { StaffRepo } from "@/repositories/StaffRepo";
 import { Staff } from "@/entities/Staff";
 import bcrypt from "bcrypt";
 import { NotFoundError, ConflictError, BadRequestError } from "@/errors";
+import { CreateStaffDTO } from "@/dto/CreateStaffDTO";
 
 export class StaffService {
   private staffRepo: StaffRepo;
@@ -11,35 +12,27 @@ export class StaffService {
     this.staffRepo = new StaffRepo(pool);
   }
 
-  async registerStaff(
-    firstName: string,
-    lastName: string,
-    email: string,
-    username: string,
-    password: string,
-    addressId: string,
-    storeId: string
-  ): Promise<Staff> {
-    const existingStaff = await this.staffRepo.findByEmail(email);
+  async registerStaff(data: CreateStaffDTO): Promise<Staff> {
+    const existingStaff = await this.staffRepo.findByEmail(data.email);
     if (existingStaff) {
       throw new ConflictError("Email is already registered");
     }
 
-    const existingUsername = await this.staffRepo.findByUsername(username);
+    const existingUsername = await this.staffRepo.findByUsername(data.username);
     if (existingUsername) {
       throw new ConflictError("Username is already taken");
     }
 
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(data.password, salt);
     const staff = new Staff(
-      firstName,
-      lastName,
-      email,
-      username,
+      data.firstName,
+      data.lastName,
+      data.email,
+      data.username,
       hashedPassword,
-      addressId,
-      storeId,
+      data.addressId,
+      data.storeId,
     );
     // Save (staffRepo.create)
     const createdStaff = await this.staffRepo.create(staff);

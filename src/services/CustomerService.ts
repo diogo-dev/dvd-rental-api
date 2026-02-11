@@ -7,6 +7,7 @@ import { Customer } from "@/entities/Customer";
 import { Rental } from "@/entities/Rental";
 import { Payment } from "@/entities/Payment";
 import { NotFoundError, ConflictError, BadRequestError } from "@/errors";
+import { CreateCustomerDTO } from "@/dto/CreateCustomerDTO";
 
 interface CustomerProfile {
   customer: Customer;
@@ -35,30 +36,24 @@ export class CustomerService {
     this.addressRepo = new AddressRepo(pool);
   }
 
-  async registerCustomer(
-    firstName: string,
-    lastName: string,
-    email: string,
-    addressId: string,
-    storeId: string
-  ): Promise<Customer> {
+  async registerCustomer(data: CreateCustomerDTO): Promise<Customer> {
     // Register new customer
-    const existingCustomer = await this.customerRepo.findByEmail(email);
+    const existingCustomer = await this.customerRepo.findByEmail(data.email);
     if (existingCustomer) {
       throw new ConflictError("Email is already registered");
     }
     
-    const address = await this.addressRepo.findById(addressId);
+    const address = await this.addressRepo.findById(data.addressId);
     if (!address) {
       throw new NotFoundError("Address not found");
     }
   
     const customer = new Customer(
-      firstName,
-      lastName,
-      email,
-      addressId,
-      storeId
+      data.firstName,
+      data.lastName,
+      data.email,
+      data.addressId,
+      data.storeId
     );
     const createdCustomer = await this.customerRepo.create(customer);
     
