@@ -20,7 +20,7 @@ export class FilmRepo {
   async create(film: Film): Promise<Film> {
     const result = await this.pool.query(`
       INSERT INTO film (title, description, release_year, rental_duration, rental_rate, length, replacement_cost, rating, fulltext)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, to_tsvector($1 || ' ' || coalesce($2, '')))
+      VALUES ($1::text, $2::text, $3, $4, $5, $6, $7, $8, to_tsvector($1::text || ' ' || coalesce($2::text, '')))
       RETURNING *;
     `, [
       film.title,

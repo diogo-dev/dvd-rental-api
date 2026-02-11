@@ -9,7 +9,8 @@
     "migration": "ts-node src/config/umzug/index.ts",
     "migration:up": "ts-node src/config/umzug/index.ts up",
     "migration:down": "ts-node src/config/umzug/index.ts down --to 0",
-    "migration:create": "node -e \"const fs=require('fs');fs.writeFileSync(`src/migrations/${Date.now()}_${process.argv[1]}.ts`,'');\""
+    "migration:create": "node -e \"const fs=require('fs');fs.writeFileSync(`src/migrations/${Date.now()}_${process.argv[1]}.ts`,'');\"",
+    "seed": "ts-node -r tsconfig-paths/register src/config/db/run-seed.ts"
   },
   "keywords": [],
   "author": "",

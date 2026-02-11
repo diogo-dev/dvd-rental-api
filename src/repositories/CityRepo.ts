@@ -6,9 +6,9 @@ export class CityRepo {
 
   async create(city: City): Promise<City> {
     const result = await this.pool.query(`
-      INSERT INTO city (city) VALUES ($1)
+      INSERT INTO city (city, country_id) VALUES ($1, $2)
       RETURNING *;
-    `, [city.city]);
+    `, [city.city, city.country_id]);
     return result.rows[0];
   }
 

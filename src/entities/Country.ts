@@ -1,5 +1,5 @@
 export class Country {
-  readonly id?: string;
+  id?: string;
   name: string;
 
   constructor (name: string) {
